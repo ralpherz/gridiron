@@ -1,0 +1,25 @@
+﻿# env
+.env
+*.env
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# node
+node_modules/
+dist/
+
+# data
+*.parquet
+*.csv
+!db/seed/*.csv
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
