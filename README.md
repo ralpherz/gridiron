@@ -34,3 +34,17 @@ Postgres listens on host port 5433 and applies db/migrations on first boot.
 - [ ] Week 4 - auth and caching
 - [ ] Week 5 - CI, metrics, health checks
 - [ ] Week 6 - deploy
+
+## Database
+
+Seven tables. Raw source data is kept separate from derived values: plays is
+what nflverse provided, keyed on (game_id, play_id) so re-ingesting updates
+rather than duplicates. player_game_stats is computed from plays and can be
+recomputed at any time without re-downloading anything.
+
+data_runs records every ingestion attempt with status, row count, and a stack
+trace on failure. A failed job leaves evidence instead of vanishing.
+
+Migrations in db/migrations are applied by Postgres on first boot of an empty
+volume. To reapply after schema changes: docker compose down -v && docker
+compose up -d
