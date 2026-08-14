@@ -17,6 +17,20 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  ingest:
+    build: ./ingest
+    container_name: gridiron-ingest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: gridiron
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: gridiron
+      NFL_SEASON: 2026
+    profiles: ["jobs"]
 
 volumes:
   pgdata:
