@@ -28,7 +28,7 @@ Postgres listens on host port 5433 and applies db/migrations on first boot.
 
 ## Roadmap
 
-- [ ] Week 1 - schema, ingestion jobs, run logging
+- [x] Week 1 - schema, ingestion jobs, run logging
 - [ ] Week 2 - API layer
 - [ ] Week 3 - frontend
 - [ ] Week 4 - auth and caching
