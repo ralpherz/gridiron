@@ -1,8 +1,8 @@
 """CLI entry point for ingestion jobs.
 
-    python main.py teams
+    python main.py teams [season]
     python main.py rosters [season]
-    python main.py all
+    python main.py all [season]
 """
 from __future__ import annotations
 
@@ -15,10 +15,10 @@ from jobs.teams import load_teams
 from run_log import track
 
 
-def run_teams(conn) -> None:
-    print("job: teams")
-    with track(conn, "teams") as run:
-        run["rows"] = load_teams(conn)
+def run_teams(conn, season: int) -> None:
+    print(f"job: teams (season {season})")
+    with track(conn, "teams", season=season) as run:
+        run["rows"] = load_teams(conn, season)
     print(f"  wrote {run['rows']} teams")
 
 
@@ -39,11 +39,11 @@ def main() -> int:
 
     with connect() as conn:
         if job == "teams":
-            run_teams(conn)
+            run_teams(conn, season)
         elif job == "rosters":
             run_rosters(conn, season)
         elif job == "all":
-            run_teams(conn)
+            run_teams(conn, season)
             run_rosters(conn, season)
         else:
             print(f"Unknown job: {job}")
