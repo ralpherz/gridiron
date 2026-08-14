@@ -1,4 +1,4 @@
 psycopg[binary]==3.2.3
-nfl_data_py==0.3.3
 pandas==2.2.3
 pyarrow==18.1.0
+requests==2.32.3
