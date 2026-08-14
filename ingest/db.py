@@ -36,3 +36,14 @@ def upsert_many(conn: psycopg.Connection, sql: str, rows: list[dict]) -> int:
     with conn.cursor() as cur:
         cur.executemany(sql, rows)
     return len(rows)
+
+UPSERT_GAME = """
+INSERT INTO games (game_id, season, week, game_date,
+                   home_team, away_team, home_score, away_score)
+VALUES (%(game_id)s, %(season)s, %(week)s, %(game_date)s,
+        %(home_team)s, %(away_team)s, %(home_score)s, %(away_score)s)
+ON CONFLICT (game_id) DO UPDATE SET
+    game_date  = EXCLUDED.game_date,
+    home_score = EXCLUDED.home_score,
+    away_score = EXCLUDED.away_score;
+"""

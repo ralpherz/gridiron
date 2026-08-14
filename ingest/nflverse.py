@@ -38,3 +38,8 @@ def fetch_games(season: int) -> pd.DataFrame:
     """Schedule and results."""
     df = pd.read_csv(io.BytesIO(_get(f"{NFLDATA}/games.csv")))
     return df[df["season"] == season].copy()
+
+def fetch_pbp(season: int) -> pd.DataFrame:
+    """Play-by-play for a season. Roughly 20MB and 50,000 rows."""
+    url = f"{RELEASES}/pbp/play_by_play_{season}.parquet"
+    return pd.read_parquet(io.BytesIO(_get(url)))
