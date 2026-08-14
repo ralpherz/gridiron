@@ -70,3 +70,27 @@ than lost in container output:
 
 Re-running is safe. Every insert uses ON CONFLICT DO UPDATE against a natural
 key, so a second run updates existing rows instead of duplicating them.
+
+## Play-by-play
+
+Around 49,000 rows per season. Two things make this job different from the
+smaller ones.
+
+Loading uses COPY into a temporary staging table followed by a single merge
+statement, rather than row-by-row inserts. 48,771 rows load in about 2.3
+seconds; the same volume through executemany would round-trip per row.
+
+The source frame has 372 columns and we want 10. Narrowing the DataFrame
+before converting to Python objects took the transform from roughly 18
+seconds to under a second - the cost was in materializing 372 columns per
+row, not in the row count.
+
+Re-running is safe. The natural key (game_id, play_id) drives an ON CONFLICT
+merge, so a second run updates rows in place. Verified: two consecutive runs,
+48,771 rows both times.
+
+### Known imprecision
+
+Receiving touchdowns are currently derived from the play-level touchdown
+column, which is true for any score on the play. pass_touchdown would be
+more precise.
