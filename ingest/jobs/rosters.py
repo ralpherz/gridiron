@@ -1,64 +1,53 @@
-"""Load players from seasonal rosters."""
+"""Load players from the season roster."""
 from __future__ import annotations
 
-import nfl_data_py as nfl
+import pandas as pd
 import psycopg
 
 from db import UPSERT_PLAYER, upsert_many
+from nflverse import fetch_roster
 
 
-def _pick(row, *names):
-    for n in names:
-        if n in row and row[n] is not None:
-            return row[n]
-    return None
-
-
-def _fetch_rosters(season: int):
-    """nfl_data_py has renamed this across versions; try the known names."""
-    for fn_name in ("import_seasonal_rosters", "import_rosters", "import_weekly_rosters"):
-        fn = getattr(nfl, fn_name, None)
-        if fn is None:
-            continue
-        try:
-            return fn([season])
-        except Exception:
-            continue
-    raise RuntimeError("Could not fetch rosters: no compatible function found")
+def _clean(value):
+    """nflverse uses both NaN and empty string for missing values."""
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return None
+    text = str(value).strip()
+    return text or None
 
 def load_players(conn: psycopg.Connection, season: int) -> int:
-    df = _fetch_rosters(season)
+    df = fetch_roster(season)
 
-    # Only insert players whose team exists, or the FK will reject them.
+    # A player whose team is not in our teams table would violate the FK.
     with conn.cursor() as cur:
         cur.execute("SELECT team_abbr FROM teams")
         known_teams = {r[0] for r in cur.fetchall()}
 
-    rows = []
-    seen = set()
-    skipped_no_id = 0
-    skipped_team = 0
-    for _, r in df.iterrows():
-        pid = _pick(r, "player_id", "gsis_id")
-        if not pid or pid in seen:
-            if not pid:
-                skipped_no_id += 1
+    rows, seen = [], set()
+    no_id = unknown_team = 0
+    for rec in df.to_dict("records"):
+        pid = _clean(rec.get("gsis_id"))
+        if pid is None:
+            no_id += 1
+            continue
+        if pid in seen:
             continue
 
-        team = _pick(r, "team", "recent_team", "team_abbr")
+        team = _clean(rec.get("team"))
         if team not in known_teams:
-            skipped_team += 1
+            unknown_team += 1
             team = None
 
         seen.add(pid)
         rows.append(
             {
-                "player_id": str(pid),
-                "full_name": _pick(r, "player_name", "full_name", "display_name") or "Unknown",
-                "position": _pick(r, "position", "depth_chart_position"),
+                "player_id": pid,
+                "full_name": _clean(rec.get("full_name")) or "Unknown",
+                "position": _clean(rec.get("position")),
                 "team_abbr": team,
             }
         )
 
-    print(f"  parsed {len(rows)} players (skipped {skipped_no_id} no id, {skipped_team} unknown team)")
+    print(f"  {len(rows)} players (skipped {no_id} without an id, "
+          f"{unknown_team} on unrecognized teams)")
     return upsert_many(conn, UPSERT_PLAYER, rows)
