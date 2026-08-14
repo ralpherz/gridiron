@@ -48,3 +48,25 @@ trace on failure. A failed job leaves evidence instead of vanishing.
 Migrations in db/migrations are applied by Postgres on first boot of an empty
 volume. To reapply after schema changes: docker compose down -v && docker
 compose up -d
+
+## Ingestion
+
+Jobs run as a separate container against the database:
+
+    docker compose run --rm ingest all 2025
+
+Teams must load before rosters - players carry a foreign key to teams, and a
+player on an unrecognized team gets a null team rather than failing the run.
+
+Data comes from nflverse release assets (CSV and parquet) fetched directly
+over HTTPS. An earlier version used nfl_data_py, which pins pandas below 2.0
+and therefore cannot install on Python 3.12.
+
+Every job is wrapped in a run tracker that writes to data_runs. When the teams
+job failed on a signature mismatch, the traceback was in the database rather
+than lost in container output:
+
+    SELECT id, job_name, status, rows_written, error_message FROM data_runs;
+
+Re-running is safe. Every insert uses ON CONFLICT DO UPDATE against a natural
+key, so a second run updates existing rows instead of duplicating them.
