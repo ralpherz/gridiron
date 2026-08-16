@@ -37,6 +37,7 @@ FROM   games
 WHERE  season = %(season)s::int
   AND  (%(week)s::int IS NULL OR week = %(week)s::int)
 ORDER  BY week, game_date, game_id
+LIMIT  %(limit)s OFFSET %(offset)s
 """
 LEADERS = """
 SELECT s.player_id,

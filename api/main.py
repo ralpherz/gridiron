@@ -91,8 +91,13 @@ def player_game_log(player_id: str, season: int | None = Query(None, ge=1999)):
 def list_games(
     season: int = Query(DEFAULT_SEASON, ge=1999),
     week: int | None = Query(None, ge=1, le=22),
+    limit: int = Query(50, ge=1, le=MAX_PAGE_SIZE),
+    offset: int = Query(0, ge=0),
 ):
-    return fetch_all(q.GAMES, {"season": season, "week": week})
+    return fetch_all(
+        q.GAMES,
+        {"season": season, "week": week, "limit": limit, "offset": offset},
+    )
 
 
 @app.get("/leaders", response_model=list[SeasonTotal], tags=["stats"])
