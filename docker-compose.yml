@@ -17,6 +17,25 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  api:
+    build: ./api
+    container_name: gridiron-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: gridiron
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: gridiron
+      NFL_SEASON: 2025
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/app
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
   ingest:
     build: ./ingest
     container_name: gridiron-ingest
