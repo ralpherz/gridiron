@@ -51,3 +51,22 @@ def load_players(conn: psycopg.Connection, season: int) -> int:
     print(f"  {len(rows)} players (skipped {no_id} without an id, "
           f"{unknown_team} on unrecognized teams)")
     return upsert_many(conn, UPSERT_PLAYER, rows)
+
+def load_player_detail(conn, season: int) -> int:
+    """Backfill headshot and Pro Football Reference id from the roster file."""
+    from db import UPSERT_PLAYER_DETAIL, upsert_many
+
+    df = fetch_roster(season)
+    rows = []
+    seen = set()
+    for rec in df.to_dict("records"):
+        pid = _clean(rec.get("gsis_id"))
+        if pid is None or pid in seen:
+            continue
+        seen.add(pid)
+        rows.append({
+            "player_id": pid,
+            "headshot_url": _clean(rec.get("headshot_url")),
+            "pfr_id": _clean(rec.get("pfr_id")),
+        })
+    return upsert_many(conn, UPSERT_PLAYER_DETAIL, rows)

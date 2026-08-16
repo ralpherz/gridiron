@@ -47,3 +47,10 @@ ON CONFLICT (game_id) DO UPDATE SET
     home_score = EXCLUDED.home_score,
     away_score = EXCLUDED.away_score;
 """
+
+UPSERT_PLAYER_DETAIL = """
+UPDATE players SET
+    headshot_url = %(headshot_url)s,
+    pfr_id       = %(pfr_id)s
+WHERE player_id = %(player_id)s;
+"""
