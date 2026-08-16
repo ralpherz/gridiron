@@ -1,12 +1,12 @@
 """CLI entry point for ingestion jobs.
 
     python main.py teams [season]
+    python main.py branding
     python main.py rosters [season]
     python main.py player_detail [season]
     python main.py games [season]
     python main.py plays [season]
     python main.py player_stats [season]
-    python main.py stats [season]
     python main.py all [season]
 """
 from __future__ import annotations
@@ -20,7 +20,7 @@ from jobs.player_stats import load_player_stats
 from jobs.plays import load_plays
 from jobs.rosters import load_player_detail, load_players
 from jobs.stats import recompute_stats
-from jobs.teams import load_teams
+from jobs.teams import load_branding, load_teams
 from run_log import track
 
 
@@ -29,6 +29,13 @@ def run_teams(conn, season: int) -> None:
     with track(conn, "teams", season=season) as run:
         run["rows"] = load_teams(conn, season)
     print(f"  wrote {run['rows']} teams")
+
+
+def run_branding(conn, season: int) -> None:
+    print("job: branding")
+    with track(conn, "branding") as run:
+        run["rows"] = load_branding(conn)
+    print(f"  updated {run['rows']} teams")
 
 
 def run_rosters(conn, season: int) -> None:
@@ -74,6 +81,7 @@ def run_stats(conn, season: int) -> None:
 
 JOBS = {
     "teams": run_teams,
+    "branding": run_branding,
     "rosters": run_rosters,
     "player_detail": run_player_detail,
     "games": run_games,
@@ -82,8 +90,9 @@ JOBS = {
     "stats": run_stats,
 }
 
-# Order matters: players reference teams, plays and stats reference games.
-ALL = ["teams", "rosters", "player_detail", "games", "plays", "player_stats"]
+# Order matters: players reference teams, stats reference players and games.
+ALL = ["teams", "branding", "rosters", "player_detail",
+       "games", "plays", "player_stats"]
 
 def main() -> int:
     args = sys.argv[1:]

@@ -40,3 +40,32 @@ def load_teams(conn: psycopg.Connection, season: int) -> int:
         )
 
     return upsert_many(conn, UPSERT_TEAM, rows)
+
+def load_branding(conn: psycopg.Connection) -> int:
+    """Colors, logos, and real conference/division from nflverse.
+
+    Replaces the hardcoded ALIGNMENT dict as the source of truth.
+    """
+    from db import UPSERT_TEAM_BRANDING, upsert_many
+    from nflverse import fetch_team_branding
+
+    df = fetch_team_branding()
+
+    with conn.cursor() as cur:
+        cur.execute("SELECT team_abbr FROM teams")
+        known = {r[0] for r in cur.fetchall()}
+
+    rows = []
+    for rec in df.to_dict("records"):
+        abbr = rec.get("team_abbr")
+        if abbr not in known:
+            continue
+        rows.append({
+            "team_abbr": abbr,
+            "conference": rec.get("team_conf"),
+            "division": rec.get("team_division"),
+            "team_color": rec.get("team_color"),
+            "team_color2": rec.get("team_color2"),
+            "logo_url": rec.get("team_logo_espn"),
+        })
+    return upsert_many(conn, UPSERT_TEAM_BRANDING, rows)

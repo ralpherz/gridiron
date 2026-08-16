@@ -54,3 +54,13 @@ UPDATE players SET
     pfr_id       = %(pfr_id)s
 WHERE player_id = %(player_id)s;
 """
+
+UPSERT_TEAM_BRANDING = """
+UPDATE teams SET
+    conference  = %(conference)s,
+    division    = %(division)s,
+    team_color  = %(team_color)s,
+    team_color2 = %(team_color2)s,
+    logo_url    = %(logo_url)s
+WHERE team_abbr = %(team_abbr)s;
+"""
