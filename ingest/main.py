@@ -19,7 +19,6 @@ from jobs.games import load_games
 from jobs.player_stats import load_player_stats
 from jobs.plays import load_plays
 from jobs.rosters import load_player_detail, load_players
-from jobs.stats import recompute_stats
 from jobs.teams import load_branding, load_teams
 from run_log import track
 
@@ -72,13 +71,6 @@ def run_player_stats(conn, season: int) -> None:
     print(f"  wrote {run['rows']} player-week rows")
 
 
-def run_stats(conn, season: int) -> None:
-    print(f"job: stats (season {season})")
-    with track(conn, "stats", season=season) as run:
-        run["rows"] = recompute_stats(conn, season)
-    print(f"  wrote {run['rows']} player-game rows")
-
-
 JOBS = {
     "teams": run_teams,
     "branding": run_branding,
@@ -87,7 +79,6 @@ JOBS = {
     "games": run_games,
     "plays": run_plays,
     "player_stats": run_player_stats,
-    "stats": run_stats,
 }
 
 # Order matters: players reference teams, stats reference players and games.
