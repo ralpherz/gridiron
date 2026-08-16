@@ -29,7 +29,7 @@ Postgres listens on host port 5433 and applies db/migrations on first boot.
 ## Roadmap
 
 - [x] Week 1 - schema, ingestion jobs, run logging
-- [ ] Week 2 - API layer
+- [x] Week 2 - API layer
 - [ ] Week 3 - frontend
 - [ ] Week 4 - auth and caching
 - [ ] Week 5 - CI, metrics, health checks
@@ -124,3 +124,37 @@ distinct exception and the run tracker records the attempt as skipped:
 
 A skipped run exits zero. A genuine failure still records a traceback and
 exits non-zero.
+
+## API
+
+A FastAPI service reading from the same database, running as a third compose
+service on port 8000. Interactive docs at /docs are generated from the type
+hints - no separate spec to maintain.
+
+    GET /health
+    GET /teams
+    GET /players?search=nacua&team=LA&position=WR
+    GET /players/{player_id}
+    GET /players/{player_id}/games?season=2025
+    GET /games?season=2026&week=1
+    GET /leaders?season=2025&sort=rec_yards&position=WR
+
+Endpoints read from player_game_stats rather than aggregating plays per
+request. That is the point of separating raw from derived: a season leaders
+query touches a few thousand pre-computed rows instead of 48,771 plays.
+
+The connection pool opens at startup and closes at shutdown. Ingestion jobs
+open one connection and exit; an API serves concurrent requests and cannot
+reconnect per request.
+
+/health checks the database and reports the timestamp of the last successful
+ingestion run, so a stale pipeline is visible without opening psql.
+### Two things worth noting
+
+Sort direction on /leaders comes from a whitelist dict, not from the query
+string. A user-supplied column name never reaches the SQL string.
+
+Optional filters written as `%(param)s IS NULL OR col = %(param)s` fail with
+"could not determine data type of parameter" when the value is NULL -
+Postgres has nothing to infer the type from. Explicit ::text and ::int casts
+resolve it.
