@@ -1,30 +1,33 @@
 # gridiron
 
-A live NFL analytics platform. Scheduled ingestion of play-by-play, roster,
-and injury data into Postgres, served through an API and web frontend, with
-the pipeline monitoring itself.
+A live NFL analytics platform. Scheduled ingestion of play-by-play, rosters,
+and per-player statistics into Postgres, served through a REST API, with the
+pipeline recording its own health.
 
-Status: in development. Week 1 - database and ingestion.
+Status: in development. Database, ingestion, and API are working; frontend
+is next.
 
 ## Why this exists
 
 Most portfolio projects are built once and never run again. This one is meant
 to be operated: data arrives on a schedule, jobs record whether they
-succeeded, and the system reports its own health.
+succeeded, and the system reports when it last updated.
 
-## Architecture (planned)
+## Architecture
 
-- Postgres - raw play-by-play kept separate from derived per-player stats
-- Ingestion worker - scheduled jobs, idempotent upserts, run logging
-- API - read endpoints over players, games, and computed stats
-- Frontend - React/TypeScript, per-player views and watchlists
-- Observability - Prometheus metrics scraped into Grafana
+- Postgres - raw play-by-play kept separate from per-player aggregates
+- Ingestion worker - seven jobs, idempotent upserts, run logging
+- API - FastAPI read layer over players, teams, games, and stats
+- Frontend - planned: team browser, player pages, search
+- Observability - planned: Prometheus metrics scraped into Grafana
 
 ## Running locally
 
     docker compose up -d
+    docker compose run --rm ingest all 2025
 
-Postgres listens on host port 5433 and applies db/migrations on first boot.
+Postgres listens on host port 5433 and applies db/migrations on first boot of
+an empty volume. The API comes up on port 8000 with interactive docs at /docs.
 
 ## Roadmap
 
@@ -37,17 +40,24 @@ Postgres listens on host port 5433 and applies db/migrations on first boot.
 
 ## Database
 
-Seven tables. Raw source data is kept separate from derived values: plays is
-what nflverse provided, keyed on (game_id, play_id) so re-ingesting updates
-rather than duplicates. player_game_stats is computed from plays and can be
-recomputed at any time without re-downloading anything.
+Six tables.
 
-data_runs records every ingestion attempt with status, row count, and a stack
-trace on failure. A failed job leaves evidence instead of vanishing.
+**teams** - 32 rows with conference, division, brand colors, and logo URL.
 
-Migrations in db/migrations are applied by Postgres on first boot of an empty
-volume. To reapply after schema changes: docker compose down -v && docker
-compose up -d
+**players** - roster identity, plus a headshot URL and the Pro Football
+Reference id that snap counts key on.
+
+**games** - schedule and results. Loaded for a future season before any game
+is played, so scores fill in as they happen.
+
+**plays** - one row per play, keyed on (game_id, play_id). Roughly 49,000 rows
+per season. This is source data, not derived from anything.
+
+**player_week_stats** - one row per player per game, 60 stat columns covering
+passing, rushing, receiving, defense, kicking, punting, and returns.
+
+**data_runs** - every ingestion attempt with status, row count, duration, and
+a stack trace on failure. A failed job leaves evidence instead of vanishing.
 
 ## Ingestion
 
@@ -55,68 +65,30 @@ Jobs run as a separate container against the database:
 
     docker compose run --rm ingest all 2025
 
-Teams must load before rosters - players carry a foreign key to teams, and a
+Order matters and is enforced by the job registry: teams before rosters
+(players carry a foreign key to teams), games before plays and stats. A
 player on an unrecognized team gets a null team rather than failing the run.
 
-Data comes from nflverse release assets (CSV and parquet) fetched directly
+Data comes from nflverse release assets - CSV and parquet - fetched directly
 over HTTPS. An earlier version used nfl_data_py, which pins pandas below 2.0
 and therefore cannot install on Python 3.12.
-
-Every job is wrapped in a run tracker that writes to data_runs. When the teams
-job failed on a signature mismatch, the traceback was in the database rather
-than lost in container output:
-
-    SELECT id, job_name, status, rows_written, error_message FROM data_runs;
 
 Re-running is safe. Every insert uses ON CONFLICT DO UPDATE against a natural
 key, so a second run updates existing rows instead of duplicating them.
 
-## Play-by-play
+### Run tracking
 
-Around 49,000 rows per season. Two things make this job different from the
-smaller ones.
+Every job is wrapped in a tracker that writes to data_runs. When the teams job
+once failed on a function signature mismatch, the traceback was in the
+database rather than lost in container output:
 
-Loading uses COPY into a temporary staging table followed by a single merge
-statement, rather than row-by-row inserts. 48,771 rows load in about 2.3
-seconds; the same volume through executemany would round-trip per row.
+    SELECT id, job_name, status, rows_written, error_message FROM data_runs;
 
-The source frame has 372 columns and we want 10. Narrowing the DataFrame
-before converting to Python objects took the transform from roughly 18
-seconds to under a second - the cost was in materializing 372 columns per
-row, not in the row count.
-
-Re-running is safe. The natural key (game_id, play_id) drives an ON CONFLICT
-merge, so a second run updates rows in place. Verified: two consecutive runs,
-48,771 rows both times.
-
-## Derived stats
-
-player_game_stats is recomputed from plays in a single SQL statement. Nothing
-is aggregated in Python, and the job reads only from plays and writes only to
-player_game_stats - so when the aggregation logic changes, it re-runs without
-re-downloading anything. That is the reason raw and derived data live in
-separate tables.
-
-The recompute joins players before inserting. A player who appears in play
-data but is not on any roster we have loaded would otherwise violate the
-foreign key; joining drops them instead of failing the whole run.
-
-### The imprecision, resolved
-
-The first version derived receiving touchdowns from the play-level touchdown
-column, which is true for any score on the play including fumble returns.
-Migration 003 added complete_pass, pass_touchdown, rush_touchdown,
-receiving_yards, and rushing_yards, and the plays job now ingests them.
-
-The difference is small and real. Across the 2025 season the play-level flag
-credited Puka Nacua with 13 receiving touchdowns and Ja Marr Chase with 9;
-the correct figures are 12 and 8.
-
-## Missing upstream data
+### Missing upstream data is not a failure
 
 Play-by-play for a season that has not started yet returns 404. That is a
-normal condition every offseason, not a failure, so the fetch layer raises a
-distinct exception and the run tracker records the attempt as skipped:
+normal offseason condition, so the fetch layer raises a distinct exception and
+the tracker records the attempt as skipped:
 
     job_name | season | status
     ---------+--------+---------
@@ -124,6 +96,49 @@ distinct exception and the run tracker records the attempt as skipped:
 
 A skipped run exits zero. A genuine failure still records a traceback and
 exits non-zero.
+
+## Play-by-play
+
+Around 49,000 rows per season. Two things make this job different from the
+smaller ones.
+
+Loading uses COPY into a temporary staging table followed by a single merge
+statement rather than row-by-row inserts. 48,771 rows load in about 2.3
+seconds; the same volume through executemany would round-trip per row.
+
+The source frame has 372 columns and we want 15. Narrowing the DataFrame
+before converting to Python objects took the transform from roughly 18 seconds
+to under a second - the cost was materializing 372 columns per row, not the
+row count itself.
+
+Verified idempotent: two consecutive runs, 48,771 rows both times.
+
+## Player statistics
+
+player_week_stats is loaded from nflverse's own weekly aggregation rather than
+derived from plays. That was a deliberate reversal.
+
+The first version computed six columns from play-by-play: targets, receptions,
+receiving yards and touchdowns, rushing yards and touchdowns. It worked, and
+it covered receivers and running backs. It could not cover anyone else without
+substantially more work - tackles are spread across a dozen scattered columns
+(solo_tackle_1_player_id, assist_tackle_2_player_id, and so on), and getting
+that subtly wrong is easy.
+
+nflverse publishes 150 columns per player per week, already correct. Taking 60
+of them gives quarterbacks, defenders, kickers, and punters real numbers
+instead of blank rows. Migration 006 dropped the derived table.
+
+plays stays, because it answers questions the aggregates cannot: expected
+points added, situational splits, anything computed per snap.
+
+### An earlier accuracy fix, kept for the record
+
+While the derived table still existed, receiving touchdowns came from the
+play-level touchdown column, which is true for any score on the play including
+fumble returns. Migration 003 added the specific flags. Across 2025 the
+play-level column credited Puka Nacua with 13 receiving touchdowns and
+Ja'Marr Chase with 9; the correct figures are 12 and 8.
 
 ## API
 
@@ -139,9 +154,8 @@ hints - no separate spec to maintain.
     GET /games?season=2026&week=1
     GET /leaders?season=2025&sort=rec_yards&position=WR
 
-Endpoints read from player_game_stats rather than aggregating plays per
-request. That is the point of separating raw from derived: a season leaders
-query touches a few thousand pre-computed rows instead of 48,771 plays.
+Endpoints read pre-aggregated rows rather than scanning plays per request. A
+season leaders query touches a few thousand rows instead of 48,771.
 
 The connection pool opens at startup and closes at shutdown. Ingestion jobs
 open one connection and exit; an API serves concurrent requests and cannot
@@ -149,12 +163,18 @@ reconnect per request.
 
 /health checks the database and reports the timestamp of the last successful
 ingestion run, so a stale pipeline is visible without opening psql.
-### Two things worth noting
 
-Sort direction on /leaders comes from a whitelist dict, not from the query
-string. A user-supplied column name never reaches the SQL string.
+## Notes
 
-Optional filters written as `%(param)s IS NULL OR col = %(param)s` fail with
-"could not determine data type of parameter" when the value is NULL -
-Postgres has nothing to infer the type from. Explicit ::text and ::int casts
-resolve it.
+**Sort whitelisting.** The sort parameter on /leaders maps through a
+dictionary before reaching SQL. A user-supplied column name never becomes part
+of a query string.
+
+**Typed null parameters.** Optional filters written as
+`%(param)s IS NULL OR col = %(param)s` fail with "could not determine data
+type of parameter" when the value is NULL - Postgres has nothing to infer from.
+Explicit ::text and ::int casts resolve it.
+
+**Rebuilding from scratch.** Migrations only run on an empty volume:
+
+    docker compose down -v && docker compose up -d
