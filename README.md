@@ -89,8 +89,38 @@ Re-running is safe. The natural key (game_id, play_id) drives an ON CONFLICT
 merge, so a second run updates rows in place. Verified: two consecutive runs,
 48,771 rows both times.
 
-### Known imprecision
+## Derived stats
 
-Receiving touchdowns are currently derived from the play-level touchdown
-column, which is true for any score on the play. pass_touchdown would be
-more precise.
+player_game_stats is recomputed from plays in a single SQL statement. Nothing
+is aggregated in Python, and the job reads only from plays and writes only to
+player_game_stats - so when the aggregation logic changes, it re-runs without
+re-downloading anything. That is the reason raw and derived data live in
+separate tables.
+
+The recompute joins players before inserting. A player who appears in play
+data but is not on any roster we have loaded would otherwise violate the
+foreign key; joining drops them instead of failing the whole run.
+
+### The imprecision, resolved
+
+The first version derived receiving touchdowns from the play-level touchdown
+column, which is true for any score on the play including fumble returns.
+Migration 003 added complete_pass, pass_touchdown, rush_touchdown,
+receiving_yards, and rushing_yards, and the plays job now ingests them.
+
+The difference is small and real. Across the 2025 season the play-level flag
+credited Puka Nacua with 13 receiving touchdowns and Ja Marr Chase with 9;
+the correct figures are 12 and 8.
+
+## Missing upstream data
+
+Play-by-play for a season that has not started yet returns 404. That is a
+normal condition every offseason, not a failure, so the fetch layer raises a
+distinct exception and the run tracker records the attempt as skipped:
+
+    job_name | season | status
+    ---------+--------+---------
+    plays    |   2026 | skipped
+
+A skipped run exits zero. A genuine failure still records a traceback and
+exits non-zero.
