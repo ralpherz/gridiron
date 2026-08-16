@@ -4,6 +4,7 @@
     python main.py rosters [season]
     python main.py games [season]
     python main.py plays [season]
+    python main.py stats [season]
     python main.py all [season]
 """
 from __future__ import annotations
@@ -15,6 +16,7 @@ from db import connect
 from jobs.games import load_games
 from jobs.plays import load_plays
 from jobs.rosters import load_players
+from jobs.stats import recompute_stats
 from jobs.teams import load_teams
 from run_log import track
 
@@ -46,15 +48,24 @@ def run_plays(conn, season: int) -> None:
     print(f"  wrote {run['rows']} plays")
 
 
+def run_stats(conn, season: int) -> None:
+    print(f"job: stats (season {season})")
+    with track(conn, "stats", season=season) as run:
+        run["rows"] = recompute_stats(conn, season)
+    print(f"  wrote {run['rows']} player-game rows")
+
+
 JOBS = {
     "teams": run_teams,
     "rosters": run_rosters,
     "games": run_games,
     "plays": run_plays,
+    "stats": run_stats,
 }
 
-# Order matters: players reference teams, plays reference games.
-ALL = ["teams", "rosters", "games", "plays"]
+# Order matters: players reference teams, plays reference games,
+# and stats are derived from plays.
+ALL = ["teams", "rosters", "games", "plays", "stats"]
 
 def main() -> int:
     args = sys.argv[1:]
