@@ -50,3 +50,15 @@ def fetch_pbp(season: int) -> pd.DataFrame:
     """Play-by-play for a season. Roughly 20MB and 50,000 rows."""
     url = f"{RELEASES}/pbp/play_by_play_{season}.parquet"
     return pd.read_parquet(io.BytesIO(_get(url)))
+
+def fetch_player_week_stats(season: int) -> pd.DataFrame:
+    """Pre-aggregated weekly stats: 150 columns across every stat category."""
+    url = f"{RELEASES}/stats_player/stats_player_week_{season}.parquet"
+    return pd.read_parquet(io.BytesIO(_get(url)))
+
+
+def fetch_team_branding() -> pd.DataFrame:
+    """Conference, division, colors, and logo URLs for all 32 teams."""
+    url = ("https://raw.githubusercontent.com/nflverse/nflfastR-data/master/"
+           "teams_colors_logos.csv")
+    return pd.read_csv(io.BytesIO(_get(url)))
