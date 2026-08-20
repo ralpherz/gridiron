@@ -178,3 +178,26 @@ Explicit ::text and ::int casts resolve it.
 **Rebuilding from scratch.** Migrations only run on an empty volume:
 
     docker compose down -v && docker compose up -d
+
+## Snap counts and injuries
+
+Two more sources, one of which needed a translation layer.
+
+Snap counts key on Pro Football Reference player ids; everything else here
+uses gsis ids. The roster file carries both, so players.pfr_id bridges them.
+Coverage is partial and the job says so rather than dropping rows quietly:
+
+    21592 snap rows (dropped 5020 with no pfr_id match, 0 with no game)
+
+The unmatched rows are mostly offensive linemen and practice-squad players
+who churn on and off rosters without a pfr_id on file. Rather than fail or
+hide it, the job reports the count every run.
+
+Snap counts are what let usage be separated from production. Tre Tucker and
+Ja'Marr Chase both played about 95% of their teams' offensive snaps in 2025;
+Chase saw 185 targets for 1412 yards, Tucker 92 for 696. Neither table
+answers that alone.
+
+Injuries load 6068 rows for a season - practice participation, game status,
+and the specific injury. Roughly half carry no report status, which is what a
+player appearing on a practice report without a game designation looks like.
