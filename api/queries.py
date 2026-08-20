@@ -160,3 +160,24 @@ WHERE  player_id = %(player_id)s::text
   AND  (%(season)s::int IS NULL OR season = %(season)s::int)
 ORDER  BY season DESC, week
 """
+
+GAME_DETAIL = """
+SELECT game_id, season, week, game_date,
+       home_team, away_team, home_score, away_score
+FROM   games
+WHERE  game_id = %(game_id)s::text
+"""
+
+GAME_BOX = """
+SELECT s.player_id, p.full_name, s.team, s.position,
+       s.completions, s.attempts, s.passing_yards, s.passing_tds,
+       s.passing_interceptions,
+       s.carries, s.rushing_yards, s.rushing_tds,
+       s.receptions, s.targets, s.receiving_yards, s.receiving_tds,
+       s.def_tackles_solo, s.def_sacks, s.def_interceptions,
+       s.fg_made, s.fg_att, s.fantasy_points_ppr
+FROM   player_week_stats s
+JOIN   players p ON p.player_id = s.player_id
+WHERE  s.game_id = %(game_id)s::text
+ORDER  BY s.team, s.position, p.full_name
+"""
