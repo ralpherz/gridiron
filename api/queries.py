@@ -119,3 +119,44 @@ FROM   players
 WHERE  team_abbr = %(team)s::text
 ORDER  BY position, full_name
 """
+
+PLAYER_STATS = """
+SELECT game_id, season, week, season_type, team, opponent_team, position,
+       completions, attempts, passing_yards, passing_tds,
+       passing_interceptions, sacks_suffered, passing_epa,
+       carries, rushing_yards, rushing_tds, rushing_fumbles_lost, rushing_epa,
+       receptions, targets, receiving_yards, receiving_tds,
+       receiving_air_yards, target_share, receiving_epa,
+       def_tackles_solo, def_tackle_assists, def_tackles_for_loss,
+       def_sacks, def_qb_hits, def_interceptions, def_pass_defended,
+       def_tds, def_fumbles_forced,
+       fg_made, fg_att, fg_long, pat_made, pat_att,
+       pt_att, pt_yards, pt_net_yards, pt_inside_20,
+       punt_returns, punt_return_yards, kickoff_returns,
+       kickoff_return_yards, special_teams_tds,
+       fantasy_points, fantasy_points_ppr
+FROM   player_week_stats
+WHERE  player_id = %(player_id)s::text
+  AND  (%(season)s::int IS NULL OR season = %(season)s::int)
+ORDER  BY season DESC, week
+"""
+
+PLAYER_SNAPS = """
+SELECT game_id, season, week, team, opponent, position,
+       offense_snaps, offense_pct, defense_snaps, defense_pct,
+       st_snaps, st_pct
+FROM   snap_counts
+WHERE  player_id = %(player_id)s::text
+  AND  (%(season)s::int IS NULL OR season = %(season)s::int)
+ORDER  BY season DESC, week
+"""
+
+PLAYER_INJURIES = """
+SELECT season, week, team, position,
+       report_primary_injury, report_secondary_injury, report_status,
+       practice_primary_injury, practice_secondary_injury, practice_status
+FROM   injuries
+WHERE  player_id = %(player_id)s::text
+  AND  (%(season)s::int IS NULL OR season = %(season)s::int)
+ORDER  BY season DESC, week
+"""
