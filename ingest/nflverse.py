@@ -62,3 +62,14 @@ def fetch_team_branding() -> pd.DataFrame:
     url = ("https://raw.githubusercontent.com/nflverse/nflfastR-data/master/"
            "teams_colors_logos.csv")
     return pd.read_csv(io.BytesIO(_get(url)))
+
+def fetch_snap_counts(season: int) -> pd.DataFrame:
+    """Offensive, defensive, and special teams snaps per player per game."""
+    url = f"{RELEASES}/snap_counts/snap_counts_{season}.parquet"
+    return pd.read_parquet(io.BytesIO(_get(url)))
+
+
+def fetch_injuries(season: int) -> pd.DataFrame:
+    """Weekly injury report: practice participation and game status."""
+    url = f"{RELEASES}/injuries/injuries_{season}.parquet"
+    return pd.read_parquet(io.BytesIO(_get(url)))
