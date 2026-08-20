@@ -67,3 +67,55 @@ SELECT max(finished_at)::text AS last_run
 FROM   data_runs
 WHERE  status = 'success'
 """
+
+TEAM_DETAIL = """
+WITH results AS (
+    SELECT home_team AS team,
+           CASE WHEN home_score > away_score THEN 1 ELSE 0 END AS win,
+           CASE WHEN home_score < away_score THEN 1 ELSE 0 END AS loss,
+           CASE WHEN home_score = away_score THEN 1 ELSE 0 END AS tie,
+           home_score AS pf, away_score AS pa
+    FROM   games
+    WHERE  season = %(season)s::int AND home_score IS NOT NULL
+    UNION ALL
+    SELECT away_team,
+           CASE WHEN away_score > home_score THEN 1 ELSE 0 END,
+           CASE WHEN away_score < home_score THEN 1 ELSE 0 END,
+           CASE WHEN away_score = home_score THEN 1 ELSE 0 END,
+           away_score, home_score
+    FROM   games
+    WHERE  season = %(season)s::int AND away_score IS NOT NULL
+)
+SELECT t.team_abbr, t.team_name, t.conference, t.division,
+       t.team_color, t.logo_url,
+       %(season)s::int                       AS season,
+       coalesce(sum(r.win), 0)::int          AS wins,
+       coalesce(sum(r.loss), 0)::int         AS losses,
+       coalesce(sum(r.tie), 0)::int          AS ties,
+       coalesce(sum(r.pf), 0)::int           AS points_for,
+       coalesce(sum(r.pa), 0)::int           AS points_against
+FROM   teams t
+LEFT   JOIN results r ON r.team = t.team_abbr
+WHERE  t.team_abbr = %(team)s::text
+GROUP  BY t.team_abbr, t.team_name, t.conference, t.division,
+          t.team_color, t.logo_url
+"""
+
+TEAM_SCHEDULE = """
+SELECT g.game_id, g.season, g.week, g.game_date,
+       CASE WHEN g.home_team = %(team)s::text THEN g.away_team ELSE g.home_team END AS opponent,
+       (g.home_team = %(team)s::text)                                                AS is_home,
+       CASE WHEN g.home_team = %(team)s::text THEN g.home_score ELSE g.away_score END AS points_for,
+       CASE WHEN g.home_team = %(team)s::text THEN g.away_score ELSE g.home_score END AS points_against
+FROM   games g
+WHERE  g.season = %(season)s::int
+  AND  (g.home_team = %(team)s::text OR g.away_team = %(team)s::text)
+ORDER  BY g.week, g.game_date
+"""
+
+TEAM_ROSTER = """
+SELECT player_id, full_name, position, team_abbr, headshot_url
+FROM   players
+WHERE  team_abbr = %(team)s::text
+ORDER  BY position, full_name
+"""
