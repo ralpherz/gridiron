@@ -7,6 +7,8 @@
     python main.py games [season]
     python main.py plays [season]
     python main.py player_stats [season]
+    python main.py snaps [season]
+    python main.py injuries [season]
     python main.py all [season]
 """
 from __future__ import annotations
@@ -16,9 +18,11 @@ import sys
 from config import CURRENT_SEASON
 from db import connect
 from jobs.games import load_games
+from jobs.injuries import load_injuries
 from jobs.player_stats import load_player_stats
 from jobs.plays import load_plays
 from jobs.rosters import load_player_detail, load_players
+from jobs.snaps import load_snap_counts
 from jobs.teams import load_branding, load_teams
 from run_log import track
 
@@ -71,6 +75,20 @@ def run_player_stats(conn, season: int) -> None:
     print(f"  wrote {run['rows']} player-week rows")
 
 
+def run_snaps(conn, season: int) -> None:
+    print(f"job: snaps (season {season})")
+    with track(conn, "snaps", season=season) as run:
+        run["rows"] = load_snap_counts(conn, season)
+    print(f"  wrote {run['rows']} snap rows")
+
+
+def run_injuries(conn, season: int) -> None:
+    print(f"job: injuries (season {season})")
+    with track(conn, "injuries", season=season) as run:
+        run["rows"] = load_injuries(conn, season)
+    print(f"  wrote {run['rows']} injury rows")
+
+
 JOBS = {
     "teams": run_teams,
     "branding": run_branding,
@@ -79,11 +97,15 @@ JOBS = {
     "games": run_games,
     "plays": run_plays,
     "player_stats": run_player_stats,
+    "snaps": run_snaps,
+    "injuries": run_injuries,
 }
 
-# Order matters: players reference teams, stats reference players and games.
-ALL = ["teams", "branding", "rosters", "player_detail",
-       "games", "plays", "player_stats"]
+# Order matters. Teams before rosters, rosters before player_detail (which
+# fills pfr_id), games before anything keyed on a game, and snaps last
+# because it depends on the pfr_id crosswalk existing.
+ALL = ["teams", "branding", "rosters", "player_detail", "games",
+       "plays", "player_stats", "injuries", "snaps"]
 
 def main() -> int:
     args = sys.argv[1:]
