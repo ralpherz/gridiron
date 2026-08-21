@@ -19,6 +19,7 @@ class Player(BaseModel):
     full_name: str
     position: str | None = None
     team_abbr: str | None = None
+    headshot_url: str | None = None
 
 
 class Game(BaseModel):
@@ -49,6 +50,7 @@ class SeasonTotal(BaseModel):
     full_name: str
     position: str | None = None
     team_abbr: str | None = None
+    headshot_url: str | None = None
     games: int
     targets: int
     receptions: int
@@ -96,6 +98,7 @@ class RosterPlayer(BaseModel):
     full_name: str
     position: str | None = None
     team_abbr: str | None = None
+    headshot_url: str | None = None
     headshot_url: str | None = None
 
 class StatLine(BaseModel):
