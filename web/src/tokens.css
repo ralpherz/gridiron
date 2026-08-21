@@ -217,3 +217,57 @@ table.stats tbody tr:hover { background: var(--paper-raised); }
   font-size: 0.8125rem; width: 2.6rem; color: var(--ink);
 }
 .team-name { font-size: 0.9375rem; }
+
+.team-head, .player-head { display: flex; gap: 1.25rem; align-items: center; padding: 2.5rem 0 0.5rem; }
+.team-logo { object-fit: contain; }
+.team-title, .player-title { font-size: var(--step-3); font-stretch: 118%; margin: 0.25rem 0 0.4rem; }
+.team-record { font-family: var(--data); font-size: 0.875rem; color: var(--ink-soft); margin: 0; }
+.team-record strong { color: var(--accent); font-size: 1.125rem; font-weight: 600; }
+.team-record-sep { color: var(--ink-faint); margin: 0 0.5rem; }
+
+.player-photo {
+  border-radius: 50%;
+  object-fit: cover;
+  background: #e8e8e4;
+  border: 2px solid var(--rule-strong);
+}
+
+.roster { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--gap-lg) var(--gap); }
+.roster-pos {
+  font-family: var(--display); font-weight: 700; font-stretch: 125%;
+  font-size: 0.9375rem; margin: 0 0 0.4rem;
+  padding-bottom: 0.3rem; border-bottom: 2px solid var(--accent);
+}
+.roster-list { list-style: none; margin: 0; padding: 0; font-size: 0.875rem; }
+.roster-list li { padding: 0.22rem 0; }
+
+.strip-section { padding-top: 1.5rem; }
+.strip { display: flex; align-items: flex-end; gap: 3px; height: 66px; margin-top: 0.5rem; }
+.strip-cell { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; }
+.strip-bar { width: 16px; background: var(--accent); opacity: 0.85; }
+.strip-cell:hover .strip-bar { opacity: 1; }
+.strip-week { font-family: var(--data); font-size: 0.625rem; color: var(--ink-faint); }
+
+table.stats tfoot td {
+  border-top: 2px solid var(--rule-strong);
+  border-bottom: 0;
+  font-weight: 600;
+  padding-top: 0.55rem;
+}
+
+.game-head { padding: 2.5rem 0 0.5rem; }
+.game-title { font-size: var(--step-2); display: flex; align-items: baseline; gap: 0.65rem; flex-wrap: wrap; }
+.game-score { font-family: var(--data); font-weight: 600; }
+.game-at { font-family: var(--body); font-weight: 400; font-size: 0.875rem; color: var(--ink-soft); }
+.box-group { margin-bottom: 1.75rem; }
+.box-group-label {
+  font-family: var(--data); font-size: 0.6875rem; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft);
+  margin: 0 0 0.3rem;
+}
+
+@media (max-width: 640px) {
+  .hero-title { font-size: var(--step-3); }
+  .team-head, .player-head { flex-direction: column; align-items: flex-start; }
+  table.stats { font-size: 0.75rem; }
+}
