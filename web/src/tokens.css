@@ -1,0 +1,119 @@
+:root {
+  /* Ground: cool paper, not warm cream. Ink is blue-black, not pure black. */
+  --paper: #f7f7f5;
+  --paper-raised: #ffffff;
+  --ink: #14161a;
+  --ink-soft: #5b6169;
+  --ink-faint: #9aa0a8;
+  --rule: #dcdcd8;
+  --rule-strong: #b9b9b3;
+
+  /* Overridden per team page from the database. */
+  --accent: #14161a;
+  --accent-ink: #ffffff;
+
+  --display: "Archivo", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --data: "IBM Plex Mono", ui-monospace, monospace;
+
+  --step-0: 0.9375rem;
+  --step-1: 1.125rem;
+  --step-2: 1.5rem;
+  --step-3: 2.25rem;
+  --step-4: 3.5rem;
+
+  --gap: 1.25rem;
+  --gap-lg: 2.5rem;
+  --measure: 62ch;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  font-feature-settings: "tnum";
+}
+
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+.wrap { max-width: 1140px; margin: 0 auto; padding: 0 var(--gap); }
+
+/* Stenciled, jersey-like. Used for names and headers only. */
+.display {
+  font-family: var(--display);
+  font-weight: 700;
+  font-stretch: 112%;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.eyebrow {
+  font-family: var(--data);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* The yard-line rule: hash ticks rather than a plain divider. */
+.yardline {
+  height: 9px;
+  border-top: 1px solid var(--rule-strong);
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--rule-strong) 0 1px,
+    transparent 1px 12px
+  );
+  background-size: 100% 5px;
+  background-repeat: no-repeat;
+  margin: var(--gap-lg) 0 var(--gap);
+}
+
+table.stats {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--data);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+table.stats th {
+  text-align: right;
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--rule-strong);
+  white-space: nowrap;
+}
+table.stats td {
+  text-align: right;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+table.stats th:first-child,
+table.stats td:first-child { text-align: left; }
+table.stats tbody tr:hover { background: var(--paper-raised); }
