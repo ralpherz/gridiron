@@ -117,3 +117,42 @@ table.stats td {
 table.stats th:first-child,
 table.stats td:first-child { text-align: left; }
 table.stats tbody tr:hover { background: var(--paper-raised); }
+
+.masthead {
+  border-bottom: 2px solid var(--ink);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.masthead-inner { display: flex; align-items: baseline; gap: 1rem; padding: 0.9rem var(--gap); }
+.masthead-mark { display: flex; align-items: baseline; gap: 0.75rem; }
+.masthead-mark:hover { text-decoration: none; }
+.masthead-word {
+  font-family: var(--display);
+  font-weight: 700;
+  font-stretch: 125%;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+.masthead-sub {
+  font-family: var(--data);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.footer {
+  margin-top: var(--gap-lg);
+  border-top: 1px solid var(--rule-strong);
+  padding: var(--gap) 0 3rem;
+}
+
+.loading, .error {
+  font-family: var(--data);
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  padding: 2rem 0;
+}
+.error { color: #a3352b; }
