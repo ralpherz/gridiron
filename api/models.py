@@ -99,7 +99,6 @@ class RosterPlayer(BaseModel):
     position: str | None = None
     team_abbr: str | None = None
     headshot_url: str | None = None
-    headshot_url: str | None = None
 
 class StatLine(BaseModel):
     """One player's full stat line for one game. Most fields are null for any
@@ -220,3 +219,4 @@ class BoxScore(BaseModel):
     home_score: int | None = None
     away_score: int | None = None
     players: list[BoxLine]
+
