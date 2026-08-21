@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Query
 import queries as q
 from config import DEFAULT_SEASON, MAX_PAGE_SIZE
 from db import fetch_all, fetch_one, pool
-from models import Game, GameLine, Health, Player, SeasonTotal, Team
+from models import (BoxScore, Game, GameLine, Health, InjuryLine, Player, RosterPlayer, ScheduleGame, SeasonTotal, SnapLine, StatLine, Team, TeamDetail)
 
 # Whitelisted so the sort parameter can never reach SQL as raw input.
 SORTABLE = {
@@ -121,3 +121,48 @@ def leaders(
             "limit": limit,
         },
     )
+
+@app.get("/teams/{team_abbr}", response_model=TeamDetail, tags=["teams"])
+def team_detail(team_abbr: str, season: int = Query(DEFAULT_SEASON, ge=1999)):
+    row = fetch_one(q.TEAM_DETAIL, {"team": team_abbr.upper(), "season": season})
+    if row is None:
+        raise HTTPException(status_code=404, detail="team not found")
+    return row
+
+
+@app.get("/teams/{team_abbr}/schedule", response_model=list[ScheduleGame], tags=["teams"])
+def team_schedule(team_abbr: str, season: int = Query(DEFAULT_SEASON, ge=1999)):
+    return fetch_all(q.TEAM_SCHEDULE, {"team": team_abbr.upper(), "season": season})
+
+
+@app.get("/teams/{team_abbr}/roster", response_model=list[RosterPlayer], tags=["teams"])
+def team_roster(team_abbr: str):
+    return fetch_all(q.TEAM_ROSTER, {"team": team_abbr.upper()})
+
+@app.get("/players/{player_id}/stats", response_model=list[StatLine], tags=["players"])
+def player_stats(player_id: str, season: int | None = Query(None, ge=1999)):
+    if fetch_one(q.PLAYER_BY_ID, {"player_id": player_id}) is None:
+        raise HTTPException(status_code=404, detail="player not found")
+    return fetch_all(q.PLAYER_STATS, {"player_id": player_id, "season": season})
+
+
+@app.get("/players/{player_id}/snaps", response_model=list[SnapLine], tags=["players"])
+def player_snaps(player_id: str, season: int | None = Query(None, ge=1999)):
+    if fetch_one(q.PLAYER_BY_ID, {"player_id": player_id}) is None:
+        raise HTTPException(status_code=404, detail="player not found")
+    return fetch_all(q.PLAYER_SNAPS, {"player_id": player_id, "season": season})
+
+
+@app.get("/players/{player_id}/injuries", response_model=list[InjuryLine], tags=["players"])
+def player_injuries(player_id: str, season: int | None = Query(None, ge=1999)):
+    if fetch_one(q.PLAYER_BY_ID, {"player_id": player_id}) is None:
+        raise HTTPException(status_code=404, detail="player not found")
+    return fetch_all(q.PLAYER_INJURIES, {"player_id": player_id, "season": season})
+
+@app.get("/games/{game_id}", response_model=BoxScore, tags=["games"])
+def game_box_score(game_id: str):
+    game = fetch_one(q.GAME_DETAIL, {"game_id": game_id})
+    if game is None:
+        raise HTTPException(status_code=404, detail="game not found")
+    game["players"] = fetch_all(q.GAME_BOX, {"game_id": game_id})
+    return game

@@ -17,60 +17,13 @@ LIMIT  %(limit)s OFFSET %(offset)s
 """
 
 PLAYER_BY_ID = """
-SELECT player_id, full_name, position, team_abbr
+SELECT player_id, full_name, position, team_abbr, headshot_url
 FROM   players
 WHERE  player_id = %(player_id)s
 """
-PLAYER_GAME_LOG = """
-SELECT s.game_id, s.season, s.week, s.targets, s.receptions,
-       s.rec_yards, s.rec_tds, s.rush_yards, s.rush_tds
-FROM   player_game_stats s
-WHERE  s.player_id = %(player_id)s
-  AND  (%(season)s::int IS NULL OR s.season = %(season)s::int)
-ORDER  BY s.season DESC, s.week
-"""
-
-GAMES = """
-SELECT game_id, season, week, game_date,
-       home_team, away_team, home_score, away_score
-FROM   games
-WHERE  season = %(season)s::int
-  AND  (%(week)s::int IS NULL OR week = %(week)s::int)
-ORDER  BY week, game_date, game_id
-LIMIT  %(limit)s OFFSET %(offset)s
-"""
-LEADERS = """
-SELECT s.player_id,
-       p.full_name,
-       p.position,
-       p.team_abbr,
-       count(*)                  AS games,
-       sum(s.targets)::int       AS targets,
-       sum(s.receptions)::int    AS receptions,
-       sum(s.rec_yards)::int     AS rec_yards,
-       sum(s.rec_tds)::int       AS rec_tds,
-       sum(s.rush_yards)::int    AS rush_yards,
-       sum(s.rush_tds)::int      AS rush_tds
-FROM   player_game_stats s
-JOIN   players p ON p.player_id = s.player_id
-WHERE  s.season = %(season)s::int
-  AND  (%(position)s::text IS NULL OR p.position = %(position)s::text)
-GROUP  BY s.player_id, p.full_name, p.position, p.team_abbr
-ORDER  BY {sort_column} DESC
-LIMIT  %(limit)s
-"""
-
-HEALTH_DB = "SELECT 1 AS ok"
-
-HEALTH_LAST_RUN = """
-SELECT max(finished_at)::text AS last_run
-FROM   data_runs
-WHERE  status = 'success'
-"""
-
 TEAM_DETAIL = """
 WITH results AS (
-    SELECT home_team AS team,
+    SELECT home_team AS team, week,
            CASE WHEN home_score > away_score THEN 1 ELSE 0 END AS win,
            CASE WHEN home_score < away_score THEN 1 ELSE 0 END AS loss,
            CASE WHEN home_score = away_score THEN 1 ELSE 0 END AS tie,
@@ -78,7 +31,7 @@ WITH results AS (
     FROM   games
     WHERE  season = %(season)s::int AND home_score IS NOT NULL
     UNION ALL
-    SELECT away_team,
+    SELECT away_team, week,
            CASE WHEN away_score > home_score THEN 1 ELSE 0 END,
            CASE WHEN away_score < home_score THEN 1 ELSE 0 END,
            CASE WHEN away_score = home_score THEN 1 ELSE 0 END,
@@ -88,12 +41,14 @@ WITH results AS (
 )
 SELECT t.team_abbr, t.team_name, t.conference, t.division,
        t.team_color, t.logo_url,
-       %(season)s::int                       AS season,
-       coalesce(sum(r.win), 0)::int          AS wins,
-       coalesce(sum(r.loss), 0)::int         AS losses,
-       coalesce(sum(r.tie), 0)::int          AS ties,
-       coalesce(sum(r.pf), 0)::int           AS points_for,
-       coalesce(sum(r.pa), 0)::int           AS points_against
+       %(season)s::int AS season,
+       coalesce(sum(r.win)  FILTER (WHERE r.week <= 18), 0)::int AS wins,
+       coalesce(sum(r.loss) FILTER (WHERE r.week <= 18), 0)::int AS losses,
+       coalesce(sum(r.tie)  FILTER (WHERE r.week <= 18), 0)::int AS ties,
+       coalesce(sum(r.pf)   FILTER (WHERE r.week <= 18), 0)::int AS points_for,
+       coalesce(sum(r.pa)   FILTER (WHERE r.week <= 18), 0)::int AS points_against,
+       coalesce(sum(r.win)  FILTER (WHERE r.week > 18), 0)::int  AS playoff_wins,
+       coalesce(sum(r.loss) FILTER (WHERE r.week > 18), 0)::int  AS playoff_losses
 FROM   teams t
 LEFT   JOIN results r ON r.team = t.team_abbr
 WHERE  t.team_abbr = %(team)s::text
@@ -181,3 +136,4 @@ JOIN   players p ON p.player_id = s.player_id
 WHERE  s.game_id = %(game_id)s::text
 ORDER  BY s.team, s.position, p.full_name
 """
+

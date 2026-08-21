@@ -76,6 +76,8 @@ class TeamDetail(BaseModel):
     ties: int
     points_for: int
     points_against: int
+    playoff_wins: int
+    playoff_losses: int
 
 
 class ScheduleGame(BaseModel):
