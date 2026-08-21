@@ -156,3 +156,64 @@ table.stats tbody tr:hover { background: var(--paper-raised); }
   padding: 2rem 0;
 }
 .error { color: #a3352b; }
+
+.hero { padding: 3.5rem 0 2rem; max-width: var(--measure); }
+.hero-title {
+  font-size: var(--step-4);
+  font-stretch: 125%;
+  margin: 0.5rem 0 1.25rem;
+}
+.hero-copy { color: var(--ink-soft); font-size: var(--step-1); line-height: 1.6; margin: 0; }
+
+.search { max-width: 34rem; margin-top: 1rem; }
+.search-input {
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.7rem 0.85rem;
+  font-family: var(--body);
+  font-size: var(--step-1);
+  color: var(--ink);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+}
+.search-input:focus { outline: 2px solid var(--ink); outline-offset: 0; }
+.search-results { margin-top: 0.4rem; border: 1px solid var(--rule); background: var(--paper-raised); }
+.search-hit {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+  padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--rule);
+}
+.search-hit:last-child { border-bottom: 0; }
+.search-hit:hover { background: var(--paper); text-decoration: none; }
+.search-hit-name { font-weight: 500; }
+.search-hit-meta { font-family: var(--data); font-size: 0.75rem; color: var(--ink-soft); }
+
+.divisions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--gap-lg) var(--gap);
+  margin-top: 1rem;
+}
+.division-name {
+  font-family: var(--data);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rule-strong);
+  margin: 0 0 0.5rem;
+}
+.team-list { list-style: none; margin: 0; padding: 0; }
+.team-row {
+  display: flex; align-items: baseline; gap: 0.7rem;
+  padding: 0.4rem 0; border-bottom: 1px solid var(--rule);
+}
+.team-row:hover { text-decoration: none; }
+.team-row:hover .team-name { text-decoration: underline; text-underline-offset: 3px; }
+.team-abbr {
+  font-family: var(--display); font-weight: 700; font-stretch: 125%;
+  font-size: 0.8125rem; width: 2.6rem; color: var(--ink);
+}
+.team-name { font-size: 0.9375rem; }
