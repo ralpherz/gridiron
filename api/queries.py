@@ -137,3 +137,11 @@ WHERE  s.game_id = %(game_id)s::text
 ORDER  BY s.team, s.position, p.full_name
 """
 
+
+HEALTH_DB = "SELECT 1 AS ok"
+
+HEALTH_LAST_RUN = """
+SELECT max(finished_at)::text AS last_run
+FROM   data_runs
+WHERE  status = 'success'
+"""

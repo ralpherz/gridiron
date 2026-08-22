@@ -15,11 +15,12 @@ pool = ConnectionPool(CONNINFO, min_size=1, max_size=10, open=False)
 
 def fetch_all(sql: str, params: dict | None = None) -> list[dict]:
     with pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        cur.execute(sql, params or {})
+        cur.execute(sql, params)
         return cur.fetchall()
 
 
 def fetch_one(sql: str, params: dict | None = None) -> dict | None:
     with pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        cur.execute(sql, params or {})
+        cur.execute(sql, params)
         return cur.fetchone()
+

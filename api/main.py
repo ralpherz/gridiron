@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Query
 
+from fastapi.middleware.cors import CORSMiddleware
+
 import queries as q
 from config import DEFAULT_SEASON, MAX_PAGE_SIZE
 from db import fetch_all, fetch_one, pool
@@ -34,13 +36,23 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+# The frontend is served from a different origin in development.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=False,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
 @app.get("/health", response_model=Health, tags=["meta"])
 def health():
     try:
         fetch_one(q.HEALTH_DB)
-    except Exception:
-        raise HTTPException(status_code=503, detail="database unreachable")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail=f"database check failed: {type(exc).__name__}: {exc}"
+        )
     row = fetch_one(q.HEALTH_LAST_RUN)
     return Health(
         status="ok",
@@ -166,3 +178,7 @@ def game_box_score(game_id: str):
         raise HTTPException(status_code=404, detail="game not found")
     game["players"] = fetch_all(q.GAME_BOX, {"game_id": game_id})
     return game
+
+
+
+
