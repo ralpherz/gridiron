@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 import queries as q
-from config import DEFAULT_SEASON, MAX_PAGE_SIZE
+from config import ALLOWED_ORIGINS, DEFAULT_SEASON, MAX_PAGE_SIZE
 from db import fetch_all, fetch_one, pool
 from models import (BoxScore, Game, GameLine, Health, InjuryLine, Player, RosterPlayer, ScheduleGame, SeasonTotal, SnapLine, StatLine, Team, TeamDetail)
 
@@ -39,7 +39,7 @@ app = FastAPI(
 # The frontend is served from a different origin in development.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
     allow_methods=["GET"],
     allow_headers=["*"],
@@ -178,6 +178,7 @@ def game_box_score(game_id: str):
         raise HTTPException(status_code=404, detail="game not found")
     game["players"] = fetch_all(q.GAME_BOX, {"game_id": game_id})
     return game
+
 
 
 
