@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: gridiron-api
+    runtime: docker
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    plan: free
+    region: ohio
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: NFL_SEASON
+        value: "2026"
