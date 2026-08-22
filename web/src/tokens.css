@@ -293,3 +293,10 @@ table.stats tr.row-divider td {
   color: var(--ink-soft);
   margin-left: 0.5rem;
 }
+
+table.stats tfoot tr.row-postseason-total td {
+  border-top: 0;
+  padding-top: 0.2rem;
+  color: var(--ink-soft);
+  font-weight: 500;
+}

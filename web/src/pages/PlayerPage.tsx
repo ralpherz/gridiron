@@ -122,7 +122,12 @@ export default function PlayerPage() {
   if (!player) return <p className="loading">Loading player...</p>;
 
   const cols = columnsFor(player.position, rows);
-  const totals = cols.map((c) => rows.reduce((s, r) => s + Number(r[c.key] ?? 0), 0));
+  const regularSeason = rows.filter((r) => r.week <= LAST_REGULAR_WEEK);
+  const postseason = rows.filter((r) => r.week > LAST_REGULAR_WEEK);
+  const sum = (source: StatLine[]) =>
+    cols.map((c) => source.reduce((s, r) => s + Number(r[c.key] ?? 0), 0));
+  const regularTotals = sum(regularSeason);
+  const postseasonTotals = sum(postseason);
   const snapByWeek = new Map(snaps.map((s) => [s.week, s]));
   const peak = Math.max(1, ...rows.map((r) => Number(r.fantasy_points_ppr ?? 0)));
   const log = buildLog(rows, schedule);
@@ -218,10 +223,21 @@ export default function PlayerPage() {
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan={2}>Season</td>
-                {totals.map((t, i) => <td key={cols[i].key}>{Math.round(t * 10) / 10}</td>)}
+                <td colSpan={2}>Regular season</td>
+                {regularTotals.map((t, i) => (
+                  <td key={cols[i].key}>{Math.round(t * 10) / 10}</td>
+                ))}
                 <td>--</td>
               </tr>
+              {postseason.length > 0 && (
+                <tr className="row-postseason-total">
+                  <td colSpan={2}>Postseason</td>
+                  {postseasonTotals.map((t, i) => (
+                    <td key={cols[i].key}>{Math.round(t * 10) / 10}</td>
+                  ))}
+                  <td>--</td>
+                </tr>
+              )}
             </tfoot>
           </table>
         )}
@@ -229,3 +245,5 @@ export default function PlayerPage() {
     </>
   );
 }
+
+
