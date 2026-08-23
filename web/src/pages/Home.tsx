@@ -36,8 +36,13 @@ export default function Home() {
   const byDivision = useMemo(() => {
     const map = new Map<string, Team[]>();
     for (const t of teams) {
-      const key = t.division ?? "Other";
-      map.set(key, [...(map.get(key) ?? []), t]);
+      // The division column holds either "East" or "AFC East" depending on
+      // when the branding job last ran. Build the label from both fields.
+      const div = t.division ?? "";
+      const key = div.startsWith(t.conference ?? "")
+        ? div
+        : `${t.conference ?? ""} ${div}`.trim();
+      map.set(key || "Other", [...(map.get(key || "Other") ?? []), t]);
     }
     return map;
   }, [teams]);
@@ -111,3 +116,4 @@ export default function Home() {
     </>
   );
 }
+
