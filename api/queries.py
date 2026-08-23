@@ -145,3 +145,25 @@ SELECT max(finished_at)::text AS last_run
 FROM   data_runs
 WHERE  status = 'success'
 """
+
+LEADERS = """
+SELECT s.player_id,
+       p.full_name,
+       p.position,
+       p.team_abbr,
+       count(*)                        AS games,
+       coalesce(sum(s.targets), 0)::int          AS targets,
+       coalesce(sum(s.receptions), 0)::int       AS receptions,
+       coalesce(sum(s.receiving_yards), 0)::int  AS rec_yards,
+       coalesce(sum(s.receiving_tds), 0)::int    AS rec_tds,
+       coalesce(sum(s.rushing_yards), 0)::int    AS rush_yards,
+       coalesce(sum(s.rushing_tds), 0)::int      AS rush_tds
+FROM   player_week_stats s
+JOIN   players p ON p.player_id = s.player_id
+WHERE  s.season = %(season)s::int
+  AND  s.week <= 18
+  AND  (%(position)s::text IS NULL OR p.position = %(position)s::text)
+GROUP  BY s.player_id, p.full_name, p.position, p.team_abbr
+ORDER  BY {sort_column} DESC
+LIMIT  %(limit)s
+"""
