@@ -34,9 +34,9 @@ an empty volume. The API comes up on port 8000 with interactive docs at /docs.
 - [x] Week 1 - schema, ingestion jobs, run logging
 - [x] Week 2 - API layer
 - [x] Week 3 - frontend
-- [ ] Week 4 - auth and caching
-- [ ] Week 5 - CI, metrics, health checks
-- [ ] Week 6 - deploy
+- [x] Week 4 - auth and caching
+- [x] Week 5 - CI, metrics, health checks
+- [x] Week 6 - deploy
 
 ## Database
 
