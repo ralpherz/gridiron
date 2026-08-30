@@ -10,7 +10,7 @@ from __future__ import annotations
 import pandas as pd
 import psycopg
 
-from nflverse import fetch_snap_counts
+from gridiron.ingest.nflverse import fetch_snap_counts
 
 COLUMNS = [
     "player_id", "game_id", "season", "week", "team", "opponent",

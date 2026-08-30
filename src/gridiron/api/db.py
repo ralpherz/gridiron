@@ -8,7 +8,7 @@ from __future__ import annotations
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 
-from config import CONNINFO
+from gridiron.api.config import CONNINFO
 
 pool = ConnectionPool(CONNINFO, min_size=1, max_size=10, open=False)
 

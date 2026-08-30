@@ -6,7 +6,7 @@ import traceback
 
 import psycopg
 
-from nflverse import DataNotAvailable
+from gridiron.ingest.nflverse import DataNotAvailable
 
 
 @contextlib.contextmanager
