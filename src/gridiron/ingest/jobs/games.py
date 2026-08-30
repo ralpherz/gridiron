@@ -4,8 +4,8 @@ from __future__ import annotations
 import pandas as pd
 import psycopg
 
-from db import UPSERT_GAME, upsert_many
-from nflverse import fetch_games
+from gridiron.ingest.db import UPSERT_GAME, upsert_many
+from gridiron.ingest.nflverse import fetch_games
 
 
 def _text(value):

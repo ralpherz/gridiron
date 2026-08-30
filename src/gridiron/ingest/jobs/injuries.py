@@ -4,7 +4,7 @@ from __future__ import annotations
 import pandas as pd
 import psycopg
 
-from nflverse import fetch_injuries
+from gridiron.ingest.nflverse import fetch_injuries
 
 COLUMNS = [
     "player_id", "season", "week", "team", "position",

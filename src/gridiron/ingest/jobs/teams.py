@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import psycopg
 
-from db import UPSERT_TEAM, upsert_many
-from nflverse import fetch_teams
+from gridiron.ingest.db import UPSERT_TEAM, upsert_many
+from gridiron.ingest.nflverse import fetch_teams
 
 ALIGNMENT = {
     "BUF": ("AFC", "East"),  "MIA": ("AFC", "East"),  "NE": ("AFC", "East"),

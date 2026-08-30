@@ -15,16 +15,16 @@ from __future__ import annotations
 
 import sys
 
-from config import CURRENT_SEASON
-from db import connect
-from jobs.games import load_games
-from jobs.injuries import load_injuries
-from jobs.player_stats import load_player_stats
-from jobs.plays import load_plays
-from jobs.rosters import load_player_detail, load_players
-from jobs.snaps import load_snap_counts
-from jobs.teams import load_branding, load_teams
-from run_log import track
+from gridiron.ingest.config import CURRENT_SEASON
+from gridiron.ingest.db import connect
+from gridiron.ingest.jobs.games import load_games
+from gridiron.ingest.jobs.injuries import load_injuries
+from gridiron.ingest.jobs.player_stats import load_player_stats
+from gridiron.ingest.jobs.plays import load_plays
+from gridiron.ingest.jobs.rosters import load_player_detail, load_players
+from gridiron.ingest.jobs.snaps import load_snap_counts
+from gridiron.ingest.jobs.teams import load_branding, load_teams
+from gridiron.ingest.run_log import track
 
 
 def run_teams(conn, season: int) -> None:

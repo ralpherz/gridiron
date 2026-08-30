@@ -7,10 +7,10 @@ from fastapi import FastAPI, HTTPException, Query
 
 from fastapi.middleware.cors import CORSMiddleware
 
-import queries as q
-from config import ALLOWED_ORIGINS, DEFAULT_SEASON, MAX_PAGE_SIZE
-from db import fetch_all, fetch_one, pool
-from models import (BoxScore, Game, GameLine, Health, InjuryLine, Player, RosterPlayer, ScheduleGame, SeasonTotal, SnapLine, StatLine, Team, TeamDetail)
+import gridiron.api.queries as q
+from gridiron.api.config import ALLOWED_ORIGINS, DEFAULT_SEASON, MAX_PAGE_SIZE
+from gridiron.api.db import fetch_all, fetch_one, pool
+from gridiron.api.models import (BoxScore, Game, GameLine, Health, InjuryLine, Player, RosterPlayer, ScheduleGame, SeasonTotal, SnapLine, StatLine, Team, TeamDetail)
 
 # Whitelisted so the sort parameter can never reach SQL as raw input.
 SORTABLE = {

@@ -13,7 +13,7 @@ from __future__ import annotations
 import pandas as pd
 import psycopg
 
-from nflverse import fetch_player_week_stats
+from gridiron.ingest.nflverse import fetch_player_week_stats
 
 KEY_COLUMNS = [
     "player_id", "game_id", "season", "week", "season_type",

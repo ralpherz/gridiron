@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import psycopg
 
-from config import CONNINFO
+from gridiron.ingest.config import CONNINFO
 
 
 def connect() -> psycopg.Connection:
