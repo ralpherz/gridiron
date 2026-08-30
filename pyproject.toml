@@ -1,0 +1,24 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+# poetry
+# ------
+
+[tool.poetry]
+name = "gridiron"
+version = "1.0.0"
+description = "The Gridiron API"
+license = "Apache-2.0"
+authors = ["Ralph Beaupre <ralphbeaupre4@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.13,<3.14"
+fastapi = ">=0.115.6"
+uvicorn = { version = ">=0.34.0", extras = ["standard"] }
+psycopg = { version = ">=3.2.3", extras = ["binary", "pool"] }
+pydantic = ">=2.10.4"
+pandas = ">=2.2.3"
+pyarrow = ">=18.1.0"
+requests = ">=2.32.3"
