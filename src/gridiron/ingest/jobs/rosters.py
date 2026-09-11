@@ -54,7 +54,7 @@ def load_players(conn: psycopg.Connection, season: int) -> int:
 
 def load_player_detail(conn, season: int) -> int:
     """Backfill headshot and Pro Football Reference id from the roster file."""
-    from db import UPSERT_PLAYER_DETAIL, upsert_many
+    from gridiron.ingest.db import UPSERT_PLAYER_DETAIL, upsert_many
 
     df = fetch_roster(season)
     rows = []

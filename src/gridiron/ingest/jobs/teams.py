@@ -46,8 +46,8 @@ def load_branding(conn: psycopg.Connection) -> int:
 
     Replaces the hardcoded ALIGNMENT dict as the source of truth.
     """
-    from db import UPSERT_TEAM_BRANDING, upsert_many
-    from nflverse import fetch_team_branding
+    from gridiron.ingest.db import UPSERT_TEAM_BRANDING, upsert_many
+    from gridiron.ingest.nflverse import fetch_team_branding
 
     df = fetch_team_branding()
 
@@ -69,3 +69,4 @@ def load_branding(conn: psycopg.Connection) -> int:
             "logo_url": rec.get("team_logo_espn"),
         })
     return upsert_many(conn, UPSERT_TEAM_BRANDING, rows)
+
