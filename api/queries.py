@@ -139,6 +139,16 @@ FROM   games
 WHERE  game_id = %(game_id)s::text
 """
 
+GAMES = """
+SELECT game_id, season, week, game_date,
+       home_team, away_team, home_score, away_score
+FROM   games
+WHERE  season = %(season)s::int
+  AND  (%(week)s::int IS NULL OR week = %(week)s::int)
+ORDER  BY week, game_date, game_id
+LIMIT  %(limit)s OFFSET %(offset)s
+"""
+
 GAME_BOX = """
 SELECT s.player_id, p.full_name, s.team, s.position,
        s.completions, s.attempts, s.passing_yards, s.passing_tds,
