@@ -96,6 +96,23 @@ WHERE  player_id = %(player_id)s::text
 ORDER  BY season DESC, week
 """
 
+PLAYER_GAME_LOG = """
+SELECT s.game_id, s.season, s.week, s.season_type,
+       s.team, s.opponent_team, s.position,
+       s.targets, s.receptions, s.receiving_yards, s.receiving_tds,
+       s.carries, s.rushing_yards, s.rushing_tds,
+       s.completions, s.attempts, s.passing_yards, s.passing_tds,
+       s.passing_interceptions,
+       n.offense_pct, n.offense_snaps
+FROM   player_week_stats s
+LEFT   JOIN snap_counts n
+       ON  n.player_id = s.player_id
+       AND n.game_id   = s.game_id
+WHERE  s.player_id = %(player_id)s::text
+  AND  (%(season)s::int IS NULL OR s.season = %(season)s::int)
+ORDER  BY s.season DESC, s.week
+"""
+
 PLAYER_SNAPS = """
 SELECT game_id, season, week, team, opponent, position,
        offense_snaps, offense_pct, defense_snaps, defense_pct,
