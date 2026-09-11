@@ -1,8 +1,7 @@
 """
-Guards against a bug that has now happened three times: a query constant
-gets dropped from queries.py during an edit, main.py still references it,
-and nothing notices until a user hits that endpoint in production and gets
-a 500.
+Guards against a bug that has happened four times: a query constant gets
+dropped from queries.py during an edit, main.py still references it, and
+nothing notices until a user hits that endpoint and gets a 500.
 
 main.py is parsed rather than imported, because importing it would build a
 database connection pool at module load.
@@ -10,14 +9,14 @@ database connection pool at module load.
 import ast
 from pathlib import Path
 
-import queries
+from gridiron.api import queries
 
 ROOT = Path(__file__).resolve().parent.parent
-API_MAIN = ROOT / "api" / "main.py"
+API_MAIN = ROOT / "src" / "gridiron" / "api" / "main.py"
 
 
 def referenced_constants() -> set[str]:
-    """Every `q.SOMETHING` referenced anywhere in api/main.py."""
+    """Every `q.SOMETHING` referenced anywhere in the API main module."""
     tree = ast.parse(API_MAIN.read_text(encoding="utf-8"))
     found = set()
     for node in ast.walk(tree):
@@ -39,7 +38,7 @@ def test_every_referenced_query_exists():
     missing = sorted(
         name for name in referenced_constants() if not hasattr(queries, name)
     )
-    assert not missing, f"queries.py is missing: {', '.join(missing)}"
+    assert not missing, f"queries.py is missing: {chr(44).join(missing)}"
 
 
 def test_no_query_is_empty():

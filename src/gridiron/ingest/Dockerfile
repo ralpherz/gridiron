@@ -1,11 +1,16 @@
 FROM python:3.12-slim
 
+ENV PYTHONUNBUFFERED=1 \
+    POETRY_VIRTUALENVS_CREATE=false
+
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir poetry
 
-COPY . .
+COPY pyproject.toml poetry.lock ./
+COPY src ./src
 
-ENTRYPOINT ["python", "main.py"]
+RUN poetry install --only main --no-interaction
+
+ENTRYPOINT ["gridiron-ingest"]
 CMD ["all"]

@@ -14,7 +14,7 @@ license = "Apache-2.0"
 authors = ["Ralph Beaupre <ralphbeaupre4@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.13,<3.14"
+python = ">=3.12,<3.14"
 fastapi = ">=0.115.6"
 uvicorn = { version = ">=0.34.0", extras = ["standard"] }
 psycopg = { version = ">=3.2.3", extras = ["binary", "pool"] }
@@ -22,3 +22,12 @@ pydantic = ">=2.10.4"
 pandas = ">=2.2.3"
 pyarrow = ">=18.1.0"
 requests = ">=2.32.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0"
+
+[tool.poetry.scripts]
+gridiron-ingest = "gridiron.ingest.main:cli"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

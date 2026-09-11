@@ -130,5 +130,11 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
+def cli() -> None:
+    """Console script entry point. Propagates the exit code."""
     raise SystemExit(main())
+
+
+if __name__ == "__main__":
+    cli()
+

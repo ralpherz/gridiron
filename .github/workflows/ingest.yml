@@ -22,18 +22,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Poetry
+        run: pipx install poetry
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
-          cache-dependency-path: ingest/requirements.txt
+          cache: poetry
 
       - name: Install dependencies
-        run: pip install -r ingest/requirements.txt
+        run: poetry install --only main --no-interaction
 
       - name: Run ingestion
-        working-directory: ingest
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NFL_SEASON: ${{ github.event.inputs.season || 2026 }}
-        run: python main.py all "$NFL_SEASON"
+        run: poetry run gridiron-ingest all "$NFL_SEASON"
