@@ -50,6 +50,9 @@ def load_injuries(conn: psycopg.Connection, season: int) -> int:
         print(f"  skipped {dropped} rows with no matching player")
 
     sub = sub.drop_duplicates(subset=["player_id", "season", "week"])
+    for c in COLUMNS:
+        if c not in sub.columns:
+            sub[c] = None
     sub = sub[COLUMNS].astype(object)
     sub = sub.where(pd.notna(sub), None)
     rows = list(sub.itertuples(index=False, name=None))

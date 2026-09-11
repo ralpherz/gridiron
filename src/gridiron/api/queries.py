@@ -96,6 +96,22 @@ WHERE  player_id = %(player_id)s::text
 ORDER  BY season DESC, week
 """
 
+PLAYER_GAME_LOG = """
+SELECT game_id,
+       season,
+       week,
+       coalesce(targets, 0)::int          AS targets,
+       coalesce(receptions, 0)::int       AS receptions,
+       coalesce(receiving_yards, 0)::int  AS rec_yards,
+       coalesce(receiving_tds, 0)::int    AS rec_tds,
+       coalesce(rushing_yards, 0)::int    AS rush_yards,
+       coalesce(rushing_tds, 0)::int      AS rush_tds
+FROM   player_week_stats
+WHERE  player_id = %(player_id)s::text
+  AND  (%(season)s::int IS NULL OR season = %(season)s::int)
+ORDER  BY season DESC, week
+"""
+
 PLAYER_SNAPS = """
 SELECT game_id, season, week, team, opponent, position,
        offense_snaps, offense_pct, defense_snaps, defense_pct,
@@ -121,6 +137,16 @@ SELECT game_id, season, week, game_date,
        home_team, away_team, home_score, away_score
 FROM   games
 WHERE  game_id = %(game_id)s::text
+"""
+
+GAMES = """
+SELECT game_id, season, week, game_date,
+       home_team, away_team, home_score, away_score
+FROM   games
+WHERE  season = %(season)s::int
+  AND  (%(week)s::int IS NULL OR week = %(week)s::int)
+ORDER  BY week, game_date, game_id
+LIMIT  %(limit)s OFFSET %(offset)s
 """
 
 GAME_BOX = """

@@ -300,3 +300,20 @@ table.stats tfoot tr.row-postseason-total td {
   color: var(--ink-soft);
   font-weight: 500;
 }
+
+.log-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.season-select {
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
