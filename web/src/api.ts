@@ -8,4 +8,4 @@ export async function get<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export const CURRENT_SEASON = 2025;
+export const CURRENT_SEASON = 2026;
