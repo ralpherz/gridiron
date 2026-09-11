@@ -6,6 +6,7 @@ import type { Player, ScheduleGame, SnapLine, StatLine } from "../types";
 type Col = { key: string; label: string };
 
 const LAST_REGULAR_WEEK = 18;
+const SEASONS = [2026, 2025];
 const ROUND: Record<number, string> = {
   19: "Wild Card", 20: "Divisional", 21: "Conf. Champ.", 22: "Super Bowl",
 };
@@ -67,13 +68,22 @@ type LogRow =
  * A gap in a player's log means one of two different things. If the team had
  * no game that week it is a bye; if the team played and the player has no
  * line, he did not play. Only the team schedule can tell them apart.
+ *
+ * Mid-season, the log stops at the last week actually played, so an
+ * in-progress season does not render a wall of empty rows.
  */
 function buildLog(stats: StatLine[], schedule: ScheduleGame[]): LogRow[] {
   const played = new Map(stats.map((s) => [s.week, s]));
   const teamWeeks = new Map(schedule.map((g) => [g.week, g]));
   const rows: LogRow[] = [];
 
-  for (let week = 1; week <= LAST_REGULAR_WEEK; week++) {
+  const finishedWeeks = schedule
+    .filter((g) => g.points_for !== null && g.points_for !== undefined)
+    .map((g) => g.week);
+  const lastPlayed = Math.max(0, ...stats.map((s) => s.week), ...finishedWeeks);
+  const through = Math.min(LAST_REGULAR_WEEK, lastPlayed);
+
+  for (let week = 1; week <= through; week++) {
     const stat = played.get(week);
     if (stat) { rows.push({ kind: "played", week, stat }); continue; }
     const game = teamWeeks.get(week);
@@ -92,6 +102,7 @@ function buildLog(stats: StatLine[], schedule: ScheduleGame[]): LogRow[] {
 
 export default function PlayerPage() {
   const { playerId = "" } = useParams();
+  const [season, setSeason] = useState<number>(CURRENT_SEASON);
   const [player, setPlayer] = useState<Player | null>(null);
   const [rows, setRows] = useState<StatLine[]>([]);
   const [snaps, setSnaps] = useState<SnapLine[]>([]);
@@ -102,21 +113,23 @@ export default function PlayerPage() {
     setError(null);
     Promise.all([
       get<Player>(`/players/${playerId}`),
-      get<StatLine[]>(`/players/${playerId}/stats?season=${CURRENT_SEASON}`),
-      get<SnapLine[]>(`/players/${playerId}/snaps?season=${CURRENT_SEASON}`),
+      get<StatLine[]>(`/players/${playerId}/stats?season=${season}`),
+      get<SnapLine[]>(`/players/${playerId}/snaps?season=${season}`),
     ])
       .then(([p, s, sn]) => {
         setPlayer(p);
         setRows(s);
         setSnaps(sn);
         if (p.team_abbr) {
-          get<ScheduleGame[]>(`/teams/${p.team_abbr}/schedule?season=${CURRENT_SEASON}`)
+          get<ScheduleGame[]>(`/teams/${p.team_abbr}/schedule?season=${season}`)
             .then(setSchedule)
             .catch(() => setSchedule([]));
+        } else {
+          setSchedule([]);
         }
       })
       .catch((e) => setError(String(e.message ?? e)));
-  }, [playerId]);
+  }, [playerId, season]);
 
   if (error) return <p className="error">{error}</p>;
   if (!player) return <p className="loading">Loading player...</p>;
@@ -174,7 +187,19 @@ export default function PlayerPage() {
 
       <div className="yardline" />
       <section>
-        <p className="eyebrow">{CURRENT_SEASON} game log</p>
+        <div className="log-head">
+          <p className="eyebrow">{season} game log</p>
+          <select
+            className="season-select"
+            value={season}
+            onChange={(e) => setSeason(Number(e.target.value))}
+            aria-label="Season"
+          >
+            {SEASONS.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
         {rows.length === 0 ? (
           <p className="loading">No games recorded for this season.</p>
         ) : (
@@ -245,5 +270,3 @@ export default function PlayerPage() {
     </>
   );
 }
-
-
